@@ -51,48 +51,77 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            NameScreen(),
-                        transitionDuration: Duration.zero,
-                        reverseTransitionDuration: Duration.zero,
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                Container(
+                  padding: EdgeInsets.only(
+                    top: 0.1,
+                    left: 5,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text(
-                          'START',
-                          textAlign: TextAlign.end,
-                          style: TextStyle(
-                            color: const Color.fromARGB(255, 0, 0, 0),
-                            fontFamily: 'ClashDisplay',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border(
+                      bottom: BorderSide(
+                        width: 0.1,
+                        color: Colors.white,
+                      ),
+                      left: BorderSide(
+                        width: 0.1,
+                        color: Colors.white,
+                      ),
+                      right: BorderSide(
+                        width: 1,
+                        color: Colors.white,
+                      ),
+                      top: BorderSide(
+                        width: 1,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  NameScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Text(
+                            'START',
+                            textAlign: TextAlign.end,
+                            style: TextStyle(
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                              fontFamily: 'ClashDisplay',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        alignment: Alignment.centerRight,
-                        color: Colors.transparent,
-                        child: Image.asset(
-                          'assets/icons/arrow.png',
-                          width: 30,
-                          height: 30,
+                        Container(
+                          alignment: Alignment.centerRight,
+                          color: Colors.transparent,
+                          child: Image.asset(
+                            'assets/icons/arrow.png',
+                            width: 30,
+                            height: 30,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 )
               ],
