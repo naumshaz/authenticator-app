@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:auth_app/models/account.dart';
 import 'package:flutter/material.dart';
+import 'package:qr_bar_code_scanner_dialog/qr_bar_code_scanner_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +22,9 @@ class _HomeScreenState extends State<HomeScreen> {
   //Lists
   List<Account> accounts = [];
 
+  //Others
+  final _qrBarCodeScannerDialogPlugin = QrBarCodeScannerDialog();
+
   @override
   void initState() {
     super.initState();
@@ -34,8 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(0.2 * screenHeight), // Adjust height as needed
+        preferredSize: Size.fromHeight(0.2 * screenHeight),
         child: AppBar(
           backgroundColor: Colors.black,
           flexibleSpace: Padding(
@@ -50,58 +53,62 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      body: Expanded(
-        child: Padding(
-          padding: EdgeInsets.only(left: 25, right: 25),
-          child: ListView.builder(
-            itemCount: accounts.length,
-            itemBuilder: (context, index) {
-              final account = accounts[index];
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: EdgeInsets.only(
-                      top: 5,
-                      bottom: 10,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(left: 25, right: 25),
+              child: ListView.builder(
+                itemCount: accounts.length,
+                itemBuilder: (context, index) {
+                  final account = accounts[index];
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.only(
+                          top: 5,
+                          bottom: 10,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              '${account.type}: ${account.name}',
-                              style: TextStyle(
-                                color: Color(0xFF909090),
-                                fontFamily: 'ClashDisplay',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${account.type}: ${account.name}',
+                                  style: TextStyle(
+                                    color: Color(0xFF909090),
+                                    fontFamily: 'ClashDisplay',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '${account.otp}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'ClashDisplay',
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
-                            Text(
-                              '${account.otp}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'ClashDisplay',
-                                fontSize: 36,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                            Container() //Add Timer Indicator here
                           ],
                         ),
-                        Container() //Add Timer Indicator here
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
-        ),
+        ],
       ),
       floatingActionButton: Align(
         alignment: Alignment.bottomRight,
@@ -348,7 +355,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: (35 / 390) * screenWidth,
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _qrBarCodeScannerDialogPlugin.getScannedQrBarCode(
+                            context: context, onCode: (code) {});
+                      },
                       child: Column(
                         children: [
                           Container(
