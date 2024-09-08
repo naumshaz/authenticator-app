@@ -61,11 +61,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     borderRadius: BorderRadius.circular(25),
                     border: Border(
                       bottom: BorderSide(
-                        width: 0.1,
+                        width: 0.05,
                         color: Colors.white,
                       ),
                       left: BorderSide(
-                        width: 0.1,
+                        width: 0.05,
                         color: Colors.white,
                       ),
                       right: BorderSide(

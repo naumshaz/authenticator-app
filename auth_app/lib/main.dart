@@ -19,6 +19,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
+      theme: ThemeData(
+        textSelectionTheme: TextSelectionThemeData(
+          selectionColor:
+              Color(0xFF808080), // Background color of selected text
+          selectionHandleColor:
+              Color(0xFF808080), // Color of the selection handles (pins)
+        ),
+      ),
     );
   }
 }
