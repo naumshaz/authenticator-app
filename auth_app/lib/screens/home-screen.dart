@@ -108,7 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 HapticFeedback.selectionClick();
                 _showAddOptions(context);
-                //_addAccount();
               },
               shape: CircleBorder(),
               backgroundColor: Colors.white,
@@ -148,17 +147,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     Clipboard.setData(ClipboardData(text: otpCode));
                     HapticFeedback.mediumImpact();
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        width: 0.4 * screenWidth,
-                        content: Text("Copied"),
-                        backgroundColor: Color.fromARGB(255, 50, 50, 50),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    );
+                    // ScaffoldMessenger.of(context).showSnackBar(
+                    //   SnackBar(
+                    //     width: 0.4 * screenWidth,
+                    //     content: Text("Copied"),
+                    //     backgroundColor: Color.fromARGB(255, 50, 50, 50),
+                    //     behavior: SnackBarBehavior.floating,
+                    //     shape: RoundedRectangleBorder(
+                    //       borderRadius: BorderRadius.circular(10),
+                    //     ),
+                    //   ),
+                    // );
                   },
                   child: Container(
                     padding: EdgeInsets.only(top: 13, bottom: 8),
@@ -185,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             Text(
-                              otpCode,
+                              '${otpCode.substring(0, 3)} ${otpCode.substring(3, 6)}',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'ClashDisplay',
@@ -195,15 +194,26 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-                        Text(
-                          '${OTP.remainingSeconds()}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'ClashDisplay',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
+                        SizedBox(
+                          height: 25,
+                          width: 25,
+                          child: CircularProgressIndicator(
+                            value: 1 -
+                                (OTP.remainingSeconds() / account.otpInterval),
+                            color: Color(0xFF505050),
+                            backgroundColor: Colors.white,
+                            strokeWidth: 3,
                           ),
-                        ),
+                        )
+                        // Text(
+                        //   '${OTP.remainingSeconds()}',
+                        //   style: TextStyle(
+                        //     color: Colors.white,
+                        //     fontFamily: 'ClashDisplay',
+                        //     fontSize: 18,
+                        //     fontWeight: FontWeight.w500,
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
