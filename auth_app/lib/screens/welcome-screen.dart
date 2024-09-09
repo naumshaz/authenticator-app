@@ -21,6 +21,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(),
             Column(

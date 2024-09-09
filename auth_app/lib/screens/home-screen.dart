@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:auth_app/models/account.dart';
+import 'package:base32/base32.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:otp/otp.dart';
 import 'package:qr_bar_code_scanner_dialog/qr_bar_code_scanner_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,12 +31,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   //Others
   final _qrBarCodeScannerDialogPlugin = QrBarCodeScannerDialog();
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    getName();
+    _getName();
     _loadAccounts();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  bool _validateSecretKey(String key) {
+    try {
+      base32.decode(key);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -59,62 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           SearchBar(),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(left: 25, right: 25),
-              child: ListView.builder(
-                itemCount: accounts.length,
-                itemBuilder: (context, index) {
-                  final account = accounts[index];
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.only(
-                          top: 13,
-                          bottom: 8,
-                        ),
-                        decoration: BoxDecoration(
-                            border: Border(
-                                bottom: BorderSide(color: Color(0xFF909090)))),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${account.type}: ${account.name}',
-                                  style: TextStyle(
-                                    color: Color(0xFF909090),
-                                    fontFamily: 'ClashDisplay',
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Text(
-                                  '123456}',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontFamily: 'ClashDisplay',
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Container() //Add Timer Indicator here
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
+          buildAccountsList(),
         ],
       ),
       floatingActionButton: Align(
@@ -156,6 +121,85 @@ class _HomeScreenState extends State<HomeScreen> {
               tooltip: 'Add',
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Expanded buildAccountsList() {
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsets.only(left: 25, right: 25),
+        child: ListView.builder(
+          itemCount: accounts.length,
+          itemBuilder: (context, index) {
+            final account = accounts[index];
+
+            final otpCode = OTP.generateTOTPCodeString(
+              account.key,
+              DateTime.now().millisecondsSinceEpoch,
+              length: 6,
+              interval: account.otpInterval,
+              algorithm: Algorithm.SHA256,
+              isGoogle: true,
+            );
+
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    padding: EdgeInsets.only(top: 13, bottom: 8),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFF909090)),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${account.type}: ${account.name}',
+                              style: TextStyle(
+                                color: Color(0xFF909090),
+                                fontFamily: 'ClashDisplay',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              otpCode,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'ClashDisplay',
+                                fontSize: 36,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '${OTP.remainingSeconds()}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -268,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> getName() async {
+  Future<void> _getName() async {
     final prefs = await SharedPreferences.getInstance();
     user = prefs.getString('user') ?? 'User';
     setState(() {});
@@ -371,7 +415,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () {
                         Navigator.of(context).pop();
                         _qrBarCodeScannerDialogPlugin.getScannedQrBarCode(
-                            context: context, onCode: (code) {});
+                            context: context,
+                            onCode: (code) {
+                              _setupKeyController.text = code!;
+                              _showSetupKeyOption(context);
+                            });
                       },
                       child: Column(
                         children: [
@@ -449,7 +497,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 width: screenWidth * 0.85,
-                // height: 0.6 * screenHeight,
                 child: Padding(
                   padding: const EdgeInsets.only(
                     left: 10,
@@ -471,26 +518,21 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.black,
                           ),
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
+                        SizedBox(height: 10),
                         TextField(
                           controller: _accTypeController,
                           keyboardAppearance: Brightness.dark,
-                          keyboardType: TextInputType.name,
                           textCapitalization: TextCapitalization.words,
-                          cursorColor: Colors.white,
+                          cursorColor: Color(0xFF000000),
                           cursorWidth: 1,
                           cursorHeight: 20,
                           selectionControls: DesktopTextSelectionControls(),
-                          //Input Text
                           style: TextStyle(
                             color: const Color.fromARGB(255, 0, 0, 0),
                             fontFamily: 'ClashDisplay',
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
                           ),
-
                           decoration: InputDecoration(
                             contentPadding: EdgeInsets.only(
                               top: 16,
@@ -500,7 +542,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             fillColor: Color(0xFFEBEBEB),
                             filled: true,
-                            //Borders
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
@@ -516,9 +557,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: (20 / 390) * screenWidth,
-                        ),
+                        SizedBox(height: (20 / 390) * screenWidth),
                         Text(
                           'Account Name',
                           style: TextStyle(
@@ -528,26 +567,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.black,
                           ),
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
+                        SizedBox(height: 10),
                         TextField(
                           controller: _accNameController,
                           keyboardAppearance: Brightness.dark,
-                          keyboardType: TextInputType.name,
-                          textCapitalization: TextCapitalization.words,
-                          cursorColor: Colors.white,
+                          cursorColor: Color(0xFF000000),
                           cursorWidth: 1,
                           cursorHeight: 20,
                           selectionControls: DesktopTextSelectionControls(),
-                          //Input Text
                           style: TextStyle(
                             color: const Color.fromARGB(255, 0, 0, 0),
                             fontFamily: 'ClashDisplay',
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
                           ),
-
                           decoration: InputDecoration(
                             contentPadding: EdgeInsets.only(
                               top: 16,
@@ -557,7 +590,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             fillColor: Color(0xFFEBEBEB),
                             filled: true,
-                            //Borders
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
@@ -566,16 +598,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     : Colors.black,
                               ),
                             ),
-
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(color: Colors.transparent),
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: (20 / 390) * screenWidth,
-                        ),
+                        SizedBox(height: (20 / 390) * screenWidth),
                         Text(
                           'Setup Key',
                           style: TextStyle(
@@ -585,24 +614,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.black,
                           ),
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
+                        SizedBox(height: 10),
                         TextField(
                           controller: _setupKeyController,
                           keyboardAppearance: Brightness.dark,
-                          cursorColor: Colors.white,
+                          cursorColor: Color(0xFF000000),
                           cursorWidth: 1,
                           cursorHeight: 20,
                           selectionControls: DesktopTextSelectionControls(),
-                          //Input Text
                           style: TextStyle(
-                            color: const Color.fromARGB(255, 0, 0, 0),
+                            color: Color(0xFF000000),
                             fontFamily: 'ClashDisplay',
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
                           ),
-
                           decoration: InputDecoration(
                             contentPadding: EdgeInsets.only(
                               top: 16,
@@ -612,7 +637,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             fillColor: Color(0xFFEBEBEB),
                             filled: true,
-                            //Borders
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
@@ -628,14 +652,34 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 35,
-                        ),
+                        SizedBox(height: 35),
                         SizedBox(
                           width: (300 / 390 * screenWidth),
                           height: 60,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              if (_accTypeController.text.isNotEmpty &&
+                                  _accNameController.text.isNotEmpty &&
+                                  _setupKeyController.text.isNotEmpty) {
+                                if (_validateSecretKey(
+                                    _setupKeyController.text)) {
+                                  _addAccount(
+                                    _accTypeController.text,
+                                    _accNameController.text,
+                                    _setupKeyController.text,
+                                  );
+                                  setState(() {
+                                    for (var account in accounts) {
+                                      account.lastOtpGenerationTime =
+                                          DateTime.now().millisecondsSinceEpoch;
+                                    }
+                                  });
+                                  Navigator.of(context).pop();
+                                } else {
+                                  _setupKeyController.text = '';
+                                }
+                              }
+                            },
                             child: Text(
                               'Add',
                               style: TextStyle(
@@ -662,7 +706,7 @@ class _HomeScreenState extends State<HomeScreen> {
       transitionBuilder: (context, anim, secondaryAnim, child) {
         return SlideTransition(
           position: Tween<Offset>(begin: Offset(0, 1), end: Offset(0, 0))
-              .animate(anim), // Slide up transition
+              .animate(anim),
           child: child,
         );
       },
@@ -675,8 +719,15 @@ class _HomeScreenState extends State<HomeScreen> {
         type: type,
         name: name,
         key: setupKey,
+        lastOtpGenerationTime: DateTime.now().millisecondsSinceEpoch,
       ));
       _saveAccounts();
+    });
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {});
     });
   }
 }

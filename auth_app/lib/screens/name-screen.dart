@@ -152,19 +152,21 @@ class _NameScreenState extends State<NameScreen> {
                   ),
                   child: ElevatedButton(
                     onPressed: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      prefs.setBool('isFirstTime', false);
-                      prefs.setString('user', _nameController.text);
+                      if (_nameController.text.isNotEmpty) {
+                        final prefs = await SharedPreferences.getInstance();
+                        prefs.setBool('isFirstTime', false);
+                        prefs.setString('user', _nameController.text);
 
-                      Navigator.of(context).pushReplacement(
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (context, animation, secondaryAnimation) =>
-                                  HomeScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
-                      );
+                        Navigator.of(context).pushReplacement(
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    HomeScreen(),
+                            transitionDuration: Duration.zero,
+                            reverseTransitionDuration: Duration.zero,
+                          ),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
