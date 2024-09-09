@@ -28,11 +28,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   //Lists
   List<Account> accounts = [];
+  List<Account> _searchedItems = [];
 
   //Others
+  FocusNode _focusNode = FocusNode();
   final _qrBarCodeScannerDialogPlugin = QrBarCodeScannerDialog();
   Timer? _timer;
-  bool _scannedQR = false;
 
   @override
   void initState() {
@@ -40,12 +41,29 @@ class _HomeScreenState extends State<HomeScreen> {
     _getName();
     _loadAccounts();
     _startTimer();
+
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _searchController.text = '';
+        _searchedItems = accounts;
+      }
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  void _searchItems(String query) {
+    List<Account> filteredItems = accounts.where((item) {
+      return item.name.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      _searchedItems = filteredItems;
+    });
   }
 
   bool _validateSecretKey(String key) {
@@ -126,9 +144,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Padding(
         padding: EdgeInsets.only(left: 25, right: 25),
         child: ListView.builder(
-          itemCount: accounts.length,
+          itemCount: _searchedItems.length,
           itemBuilder: (context, index) {
-            final account = accounts[index];
+            final account = _searchedItems[index];
 
             final otpCode = OTP.generateTOTPCodeString(
               account.key,
@@ -253,10 +271,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: TextField(
           controller: _searchController,
+          focusNode: _focusNode,
           keyboardAppearance: Brightness.dark,
           cursorColor: Colors.white,
           cursorWidth: 1,
           cursorHeight: 20,
+          onChanged: (value) {
+            _searchItems(value);
+          },
           style: TextStyle(
             color: Colors.white,
             fontFamily: 'ClashDisplay',
@@ -349,6 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final List<dynamic> accountsList = json.decode(accountsJson);
       setState(() {
         accounts = accountsList.map((item) => Account.fromJson(item)).toList();
+        _searchedItems = accounts;
       });
     }
   }
@@ -448,6 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _addAccount(code.split('/')[0],
                                     code.split('/')[1], code.split('/')[2]);
                                 HapticFeedback.mediumImpact();
+                                _loadAccounts();
                               }
                             }
                           },
@@ -701,6 +725,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     _setupKeyController.text,
                                   );
                                   HapticFeedback.mediumImpact();
+                                  _loadAccounts();
                                   setState(() {
                                     for (var account in accounts) {
                                       account.lastOtpGenerationTime =
