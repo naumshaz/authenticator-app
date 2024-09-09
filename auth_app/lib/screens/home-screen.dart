@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   //Others
   final _qrBarCodeScannerDialogPlugin = QrBarCodeScannerDialog();
   Timer? _timer;
+  bool _scannedQR = false;
 
   @override
   void initState() {
@@ -62,22 +63,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight((79 / 842) * screenHeight),
+        preferredSize: Size.fromHeight(1),
         child: AppBar(
           backgroundColor: Colors.black,
-          flexibleSpace: Padding(
-            padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HelloDialog(),
-              ],
-            ),
-          ),
+          flexibleSpace: Container(),
         ),
       ),
       body: Column(
         children: [
+          HelloDialog(),
           SearchBar(),
           buildAccountsList(),
         ],
@@ -267,56 +261,59 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Column HelloDialog() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: EdgeInsets.only(top: 10, bottom: 10),
-          color: Colors.black,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Hello ',
+  Padding HelloDialog() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.only(top: 10, bottom: 10),
+            color: Colors.black,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Hello ',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'ClashDisplay',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    Text(
+                      '👋🏻',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'ClashDisplay',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(0),
+                  child: Text(
+                    '${user}',
                     style: TextStyle(
                       color: Colors.white,
                       fontFamily: 'ClashDisplay',
                       fontSize: 24,
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                  Text(
-                    '👋🏻',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'ClashDisplay',
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.all(0),
-                child: Text(
-                  '${user}',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'ClashDisplay',
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-            ],
-          ),
-        )
-      ],
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -423,11 +420,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () {
                         Navigator.of(context).pop();
                         _qrBarCodeScannerDialogPlugin.getScannedQrBarCode(
-                            context: context,
-                            onCode: (code) {
-                              _setupKeyController.text = code!;
-                              _showSetupKeyOption(context);
-                            });
+                          context: context,
+                          onCode: (code) {
+                            if (code == null) {
+                            } else {
+                              if (code.split('/').length == 3 &&
+                                  _validateSecretKey(code.split('/')[2])) {
+                                _addAccount(code.split('/')[0],
+                                    code.split('/')[1], code.split('/')[2]);
+                              }
+                            }
+                          },
+                        );
                       },
                       child: Column(
                         children: [

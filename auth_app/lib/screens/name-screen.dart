@@ -158,12 +158,8 @@ class _NameScreenState extends State<NameScreen> {
                         prefs.setString('user', _nameController.text);
 
                         Navigator.of(context).pushReplacement(
-                          PageRouteBuilder(
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    HomeScreen(),
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
+                          MaterialPageRoute(
+                            builder: (context) => HomeScreen(),
                           ),
                         );
                       }
