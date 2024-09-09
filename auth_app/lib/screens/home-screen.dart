@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:auth_app/models/account.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_bar_code_scanner_dialog/qr_bar_code_scanner_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,7 +15,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   //Controllers
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _accTypeController = TextEditingController();
+  final TextEditingController _accNameController = TextEditingController();
+  final TextEditingController _setupKeyController = TextEditingController();
 
   //Strings
   String user = '';
@@ -38,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(0.2 * screenHeight),
+        preferredSize: Size.fromHeight((79 / 842) * screenHeight),
         child: AppBar(
           backgroundColor: Colors.black,
           flexibleSpace: Padding(
@@ -47,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 HelloDialog(),
-                SearchBar(),
               ],
             ),
           ),
@@ -55,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
+          SearchBar(),
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(left: 25, right: 25),
@@ -67,9 +71,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Container(
                         padding: EdgeInsets.only(
-                          top: 5,
-                          bottom: 10,
+                          top: 13,
+                          bottom: 8,
                         ),
+                        decoration: BoxDecoration(
+                            border: Border(
+                                bottom: BorderSide(color: Color(0xFF909090)))),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -88,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '${account.otp}',
+                                  '123456}',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontFamily: 'ClashDisplay',
@@ -156,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Padding SearchBar() {
     return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      padding: const EdgeInsets.only(top: 5, bottom: 20, left: 20, right: 20),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50),
@@ -316,7 +323,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _accNameController.text = '';
+                        _accTypeController.text = '';
+                        _setupKeyController.text = '';
+                        _showSetupKeyOption(context);
+                      },
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -410,12 +423,258 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _addAccount() {
+  void _showSetupKeyOption(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      barrierLabel: 'Dismiss',
+      transitionDuration: Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) {
+        return Center(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  left: 20,
+                  right: 20,
+                ),
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 255, 255, 255),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                width: screenWidth * 0.85,
+                // height: 0.6 * screenHeight,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 10,
+                    right: 10,
+                    top: 15,
+                    bottom: 15,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Account Type',
+                          style: TextStyle(
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        TextField(
+                          controller: _accTypeController,
+                          keyboardAppearance: Brightness.dark,
+                          keyboardType: TextInputType.name,
+                          textCapitalization: TextCapitalization.words,
+                          cursorColor: Colors.white,
+                          cursorWidth: 1,
+                          cursorHeight: 20,
+                          selectionControls: DesktopTextSelectionControls(),
+                          //Input Text
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.only(
+                              top: 16,
+                              bottom: 16,
+                              left: 10,
+                              right: 10,
+                            ),
+                            fillColor: Color(0xFFEBEBEB),
+                            filled: true,
+                            //Borders
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: (_setupKeyController.text.length > 0)
+                                    ? Colors.transparent
+                                    : Colors.black,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: (20 / 390) * screenWidth,
+                        ),
+                        Text(
+                          'Account Name',
+                          style: TextStyle(
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        TextField(
+                          controller: _accNameController,
+                          keyboardAppearance: Brightness.dark,
+                          keyboardType: TextInputType.name,
+                          textCapitalization: TextCapitalization.words,
+                          cursorColor: Colors.white,
+                          cursorWidth: 1,
+                          cursorHeight: 20,
+                          selectionControls: DesktopTextSelectionControls(),
+                          //Input Text
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.only(
+                              top: 16,
+                              bottom: 16,
+                              left: 10,
+                              right: 10,
+                            ),
+                            fillColor: Color(0xFFEBEBEB),
+                            filled: true,
+                            //Borders
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: (_accNameController.text.length > 0)
+                                    ? Colors.transparent
+                                    : Colors.black,
+                              ),
+                            ),
+
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: (20 / 390) * screenWidth,
+                        ),
+                        Text(
+                          'Setup Key',
+                          style: TextStyle(
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        TextField(
+                          controller: _setupKeyController,
+                          keyboardAppearance: Brightness.dark,
+                          cursorColor: Colors.white,
+                          cursorWidth: 1,
+                          cursorHeight: 20,
+                          selectionControls: DesktopTextSelectionControls(),
+                          //Input Text
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.only(
+                              top: 16,
+                              bottom: 16,
+                              left: 10,
+                              right: 10,
+                            ),
+                            fillColor: Color(0xFFEBEBEB),
+                            filled: true,
+                            //Borders
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: (_setupKeyController.text.length > 0)
+                                    ? Colors.transparent
+                                    : Colors.black,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 35,
+                        ),
+                        SizedBox(
+                          width: (300 / 390 * screenWidth),
+                          height: 60,
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            child: Text(
+                              'Add',
+                              style: TextStyle(
+                                fontFamily: 'ClashDisplay',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, anim, secondaryAnim, child) {
+        return SlideTransition(
+          position: Tween<Offset>(begin: Offset(0, 1), end: Offset(0, 0))
+              .animate(anim), // Slide up transition
+          child: child,
+        );
+      },
+    );
+  }
+
+  void _addAccount(String type, String name, String setupKey) {
     setState(() {
       accounts.add(Account(
-        type: 'Type ${accounts.length + 1}',
-        name: 'Account ${accounts.length + 1}',
-        otp: '123456',
+        type: type,
+        name: name,
+        key: setupKey,
       ));
       _saveAccounts();
     });

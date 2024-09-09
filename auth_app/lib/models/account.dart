@@ -1,16 +1,16 @@
 class Account {
   final String type;
   final String name;
-  final String otp;
+  final String key;
 
-  Account({required this.type, required this.name, required this.otp});
+  Account({required this.type, required this.name, required this.key});
 
   // Convert Account to JSON
   Map<String, dynamic> toJson() {
     return {
       'type': type,
       'name': name,
-      'otp': otp,
+      'key': key,
     };
   }
 
@@ -19,7 +19,7 @@ class Account {
     return Account(
       type: json['type'],
       name: json['name'],
-      otp: json['otp'],
+      key: json['key'],
     );
   }
 }
