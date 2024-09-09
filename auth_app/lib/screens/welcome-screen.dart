@@ -1,5 +1,6 @@
 import 'package:auth_app/screens/name-screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -79,6 +80,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                   child: ElevatedButton(
                     onPressed: () {
+                      HapticFeedback.selectionClick();
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (context) => NameScreen(),

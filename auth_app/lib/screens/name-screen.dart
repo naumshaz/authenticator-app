@@ -153,6 +153,7 @@ class _NameScreenState extends State<NameScreen> {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_nameController.text.isNotEmpty) {
+                        HapticFeedback.selectionClick();
                         final prefs = await SharedPreferences.getInstance();
                         prefs.setBool('isFirstTime', false);
                         prefs.setString('user', _nameController.text);

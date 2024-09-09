@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(1),
+        preferredSize: Size.fromHeight(0.1),
         child: AppBar(
           backgroundColor: Colors.black,
           flexibleSpace: Container(),
@@ -106,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: FloatingActionButton(
               onPressed: () {
+                HapticFeedback.selectionClick();
                 _showAddOptions(context);
                 //_addAccount();
               },
@@ -121,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Expanded buildAccountsList() {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Expanded(
       child: Padding(
         padding: EdgeInsets.only(left: 25, right: 25),
@@ -144,12 +146,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 GestureDetector(
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: otpCode));
+                    HapticFeedback.mediumImpact();
 
-                    // ScaffoldMessenger.of(context).showSnackBar(
-                    //   SnackBar(
-                    //     content: Text('Copied OTP code: $otpCode'),
-                    //   ),
-                    // );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        width: 0.4 * screenWidth,
+                        content: Text("Copied"),
+                        backgroundColor: Color.fromARGB(255, 50, 50, 50),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
                   },
                   child: Container(
                     padding: EdgeInsets.only(top: 13, bottom: 8),
@@ -209,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Padding SearchBar() {
     return Padding(
-      padding: const EdgeInsets.only(top: 5, bottom: 20, left: 20, right: 20),
+      padding: const EdgeInsets.only(top: 5, bottom: 10, left: 20, right: 20),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50),
@@ -263,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Padding HelloDialog() {
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,6 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   _validateSecretKey(code.split('/')[2])) {
                                 _addAccount(code.split('/')[0],
                                     code.split('/')[1], code.split('/')[2]);
+                                HapticFeedback.mediumImpact();
                               }
                             }
                           },
@@ -680,6 +690,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     _accNameController.text,
                                     _setupKeyController.text,
                                   );
+                                  HapticFeedback.mediumImpact();
                                   setState(() {
                                     for (var account in accounts) {
                                       account.lastOtpGenerationTime =
