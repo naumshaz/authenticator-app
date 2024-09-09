@@ -148,7 +148,15 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: otpCode));
+
+                    // ScaffoldMessenger.of(context).showSnackBar(
+                    //   SnackBar(
+                    //     content: Text('Copied OTP code: $otpCode'),
+                    //   ),
+                    // );
+                  },
                   child: Container(
                     padding: EdgeInsets.only(top: 13, bottom: 8),
                     decoration: BoxDecoration(
