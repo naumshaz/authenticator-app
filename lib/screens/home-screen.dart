@@ -30,6 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
   //Lists
   List<Account> accounts = [];
   List<Account> _searchedItems = [];
+  List<Color> _blinks = [
+    Color.fromRGBO(255, 255, 255, 1),
+    Color.fromRGBO(255, 255, 255, 0.8)
+  ];
 
   //Others
   FocusNode _focusNode = FocusNode();
@@ -163,125 +167,124 @@ class _HomeScreenState extends State<HomeScreen> {
     return Expanded(
       child: Padding(
         padding: EdgeInsets.only(left: 25, right: 25),
-        child: ListView.builder(
-          itemCount: _searchedItems.length,
-          itemBuilder: (context, index) {
-            final account = _searchedItems[index];
+        child: SlidableAutoCloseBehavior(
+          child: ListView.builder(
+            itemCount: _searchedItems.length,
+            itemBuilder: (context, index) {
+              final account = _searchedItems[index];
 
-            final otpCode = OTP.generateTOTPCodeString(
-              account.key,
-              DateTime.now().millisecondsSinceEpoch,
-              length: 6,
-              interval: account.otpInterval,
-              algorithm: Algorithm.SHA256,
-              isGoogle: true,
-            );
+              final otpCode = OTP.generateTOTPCodeString(
+                account.key,
+                DateTime.now().millisecondsSinceEpoch,
+                length: 6,
+                interval: account.otpInterval,
+                algorithm: Algorithm.SHA256,
+                isGoogle: true,
+              );
 
-            return Slidable(
-              endActionPane: ActionPane(
-                motion: DrawerMotion(),
-                children: [
-                  SlidableAction(
-                    onPressed: (context) => _showEditOption(context, account),
-                    backgroundColor: Color.fromRGBO(96, 96, 96, 0.75),
-                    icon: Icons.edit_sharp,
-                    foregroundColor: Colors.white,
-                    autoClose: true,
+              return Slidable(
+                endActionPane: ActionPane(
+                  motion: DrawerMotion(),
+                  dismissible: DismissiblePane(
+                    onDismissed: () => showRemoveAlert(context, account),
                   ),
-                  SlidableAction(
-                    onPressed: (context) => showRemoveAlert(context, account),
-                    backgroundColor: Color.fromRGBO(255, 82, 82, 0.75),
-                    icon: Icons.delete_outlined,
-                    foregroundColor: Colors.white,
-                    autoClose: true,
-                  )
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: otpCode));
-                      HapticFeedback.mediumImpact();
-                      showCopiedAlert(context);
-
-                      // ScaffoldMessenger.of(context).showSnackBar(
-                      //   SnackBar(
-                      //     width: 0.4 * screenWidth,
-                      //     content: Text("Copied"),
-                      //     backgroundColor: Color.fromARGB(255, 50, 50, 50),
-                      //     behavior: SnackBarBehavior.floating,
-                      //     shape: RoundedRectangleBorder(
-                      //       borderRadius: BorderRadius.circular(10),
-                      //     ),
-                      //   ),
-                      // );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.only(top: 13, bottom: 8, right: 5),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: Color(0xFF909090)),
+                  children: [
+                    SlidableAction(
+                      onPressed: (context) => _showEditOption(context, account),
+                      backgroundColor: Color.fromRGBO(96, 96, 96, 0.75),
+                      icon: Icons.edit_sharp,
+                      foregroundColor: Colors.white,
+                      autoClose: true,
+                    ),
+                    SlidableAction(
+                      onPressed: (context) => showRemoveAlert(context, account),
+                      backgroundColor: Color.fromRGBO(255, 82, 82, 0.75),
+                      icon: Icons.delete_outlined,
+                      foregroundColor: Colors.white,
+                      autoClose: true,
+                    )
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: otpCode));
+                        HapticFeedback.mediumImpact();
+                        showCopiedAlert(context);
+                      },
+                      splashColor: Color(0xFF606060).withOpacity(0.4),
+                      highlightColor: Color(0xFF606060).withOpacity(0.1),
+                      child: Container(
+                        padding: EdgeInsets.only(top: 13, bottom: 8, right: 5),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: Color(0xFF909090)),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${account.type}: ${account.name}',
+                                  style: TextStyle(
+                                    color: Color(0xFF909090),
+                                    fontFamily: 'ClashDisplay',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '${otpCode.substring(0, 3)} ${otpCode.substring(3, 6)}',
+                                  style: TextStyle(
+                                    color: OTP.remainingSeconds() > 5
+                                        ? Colors.white
+                                        : _blinks[(OTP.remainingSeconds() % 2)],
+                                    fontFamily: 'ClashDisplay',
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 25,
+                              width: 25,
+                              child: CircularProgressIndicator(
+                                value: 1 -
+                                    (OTP.remainingSeconds() /
+                                        account.otpInterval),
+                                color: Color(0xFF505050),
+                                backgroundColor: OTP.remainingSeconds() > 5
+                                    ? Colors.white
+                                    : _blinks[(OTP.remainingSeconds() % 2)],
+                                strokeWidth: 3,
+                              ),
+                            )
+                            // Text(
+                            //   '${OTP.remainingSeconds()}',
+                            //   style: TextStyle(
+                            //     color: Colors.white,
+                            //     fontFamily: 'ClashDisplay',
+                            //     fontSize: 18,
+                            //     fontWeight: FontWeight.w500,
+                            //   ),
+                            // ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${account.type}: ${account.name}',
-                                style: TextStyle(
-                                  color: Color(0xFF909090),
-                                  fontFamily: 'ClashDisplay',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                '${otpCode.substring(0, 3)} ${otpCode.substring(3, 6)}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'ClashDisplay',
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 25,
-                            width: 25,
-                            child: CircularProgressIndicator(
-                              value: 1 -
-                                  (OTP.remainingSeconds() /
-                                      account.otpInterval),
-                              color: Color(0xFF505050),
-                              backgroundColor: Colors.white,
-                              strokeWidth: 3,
-                            ),
-                          )
-                          // Text(
-                          //   '${OTP.remainingSeconds()}',
-                          //   style: TextStyle(
-                          //     color: Colors.white,
-                          //     fontFamily: 'ClashDisplay',
-                          //     fontSize: 18,
-                          //     fontWeight: FontWeight.w500,
-                          //   ),
-                          // ),
-                        ],
-                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
