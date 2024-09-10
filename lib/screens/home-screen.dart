@@ -5,6 +5,7 @@ import 'package:auth_app/models/account.dart';
 import 'package:base32/base32.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:otp/otp.dart';
 import 'package:qr_bar_code_scanner_dialog/qr_bar_code_scanner_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -91,24 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           HelloDialog(),
           SearchBar(),
-          accounts.isEmpty
-              ? SizedBox(
-                  height: 0.55 * screenHeight,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 20, right: 20),
-                      child: Text(
-                        "Tap '+' to get started!",
-                        style: TextStyle(
-                            fontFamily: 'ClashDisplay',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w400,
-                            color: const Color.fromRGBO(255, 255, 255, 0.5)),
-                      ),
-                    ),
-                  ),
-                )
-              : buildAccountsList(),
+          accounts.isEmpty ? getStartedText(screenHeight) : buildAccountsList(),
         ],
       ),
       floatingActionButton: Align(
@@ -155,6 +139,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  SizedBox getStartedText(double screenHeight) {
+    return SizedBox(
+      height: 0.55 * screenHeight,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20, right: 20),
+          child: Text(
+            "Tap '+' to get started!",
+            style: TextStyle(
+                fontFamily: 'ClashDisplay',
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
+                color: const Color.fromRGBO(255, 255, 255, 0.5)),
+          ),
+        ),
+      ),
+    );
+  }
+
   Expanded buildAccountsList() {
     double screenWidth = MediaQuery.of(context).size.width;
     return Expanded(
@@ -174,87 +177,109 @@ class _HomeScreenState extends State<HomeScreen> {
               isGoogle: true,
             );
 
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: otpCode));
-                    HapticFeedback.mediumImpact();
-                    showCopiedAlert(context);
+            return Slidable(
+              endActionPane: ActionPane(
+                motion: DrawerMotion(),
+                children: [
+                  SlidableAction(
+                    onPressed: (context) => _showEditOption(context, account),
+                    backgroundColor: Color.fromRGBO(96, 96, 96, 0.75),
+                    icon: Icons.edit_sharp,
+                    foregroundColor: Colors.white,
+                    autoClose: true,
+                  ),
+                  SlidableAction(
+                    onPressed: (context) => showRemoveAlert(context, account),
+                    backgroundColor: Color.fromRGBO(255, 82, 82, 0.75),
+                    icon: Icons.delete_outlined,
+                    foregroundColor: Colors.white,
+                    autoClose: true,
+                  )
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: otpCode));
+                      HapticFeedback.mediumImpact();
+                      showCopiedAlert(context);
 
-                    // ScaffoldMessenger.of(context).showSnackBar(
-                    //   SnackBar(
-                    //     width: 0.4 * screenWidth,
-                    //     content: Text("Copied"),
-                    //     backgroundColor: Color.fromARGB(255, 50, 50, 50),
-                    //     behavior: SnackBarBehavior.floating,
-                    //     shape: RoundedRectangleBorder(
-                    //       borderRadius: BorderRadius.circular(10),
-                    //     ),
-                    //   ),
-                    // );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.only(top: 13, bottom: 8),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Color(0xFF909090)),
+                      // ScaffoldMessenger.of(context).showSnackBar(
+                      //   SnackBar(
+                      //     width: 0.4 * screenWidth,
+                      //     content: Text("Copied"),
+                      //     backgroundColor: Color.fromARGB(255, 50, 50, 50),
+                      //     behavior: SnackBarBehavior.floating,
+                      //     shape: RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.circular(10),
+                      //     ),
+                      //   ),
+                      // );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(top: 13, bottom: 8, right: 5),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: Color(0xFF909090)),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${account.type}: ${account.name}',
+                                style: TextStyle(
+                                  color: Color(0xFF909090),
+                                  fontFamily: 'ClashDisplay',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${otpCode.substring(0, 3)} ${otpCode.substring(3, 6)}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'ClashDisplay',
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: CircularProgressIndicator(
+                              value: 1 -
+                                  (OTP.remainingSeconds() /
+                                      account.otpInterval),
+                              color: Color(0xFF505050),
+                              backgroundColor: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          )
+                          // Text(
+                          //   '${OTP.remainingSeconds()}',
+                          //   style: TextStyle(
+                          //     color: Colors.white,
+                          //     fontFamily: 'ClashDisplay',
+                          //     fontSize: 18,
+                          //     fontWeight: FontWeight.w500,
+                          //   ),
+                          // ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${account.type}: ${account.name}',
-                              style: TextStyle(
-                                color: Color(0xFF909090),
-                                fontFamily: 'ClashDisplay',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              '${otpCode.substring(0, 3)} ${otpCode.substring(3, 6)}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'ClashDisplay',
-                                fontSize: 36,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 25,
-                          width: 25,
-                          child: CircularProgressIndicator(
-                            value: 1 -
-                                (OTP.remainingSeconds() / account.otpInterval),
-                            color: Color(0xFF505050),
-                            backgroundColor: Colors.white,
-                            strokeWidth: 3,
-                          ),
-                        )
-                        // Text(
-                        //   '${OTP.remainingSeconds()}',
-                        //   style: TextStyle(
-                        //     color: Colors.white,
-                        //     fontFamily: 'ClashDisplay',
-                        //     fontSize: 18,
-                        //     fontWeight: FontWeight.w500,
-                        //   ),
-                        // ),
-                      ],
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
@@ -484,12 +509,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           onCode: (code) {
                             if (code == null) {
                             } else {
-                              if (code.split('/').length == 3 &&
-                                  _validateSecretKey(code.split('/')[2])) {
-                                _addAccount(code.split('/')[0],
-                                    code.split('/')[1], code.split('/')[2]);
-                                HapticFeedback.mediumImpact();
-                                _loadAccounts();
+                              if (code.contains('/')) {
+                                if (code.split('/').length == 3 &&
+                                    _validateSecretKey(code.split('/')[2])) {
+                                  _addAccount(code.split('/')[0],
+                                      code.split('/')[1], code.split('/')[2]);
+                                  HapticFeedback.mediumImpact();
+                                  _loadAccounts();
+                                }
                               }
                             }
                           },
@@ -789,6 +816,254 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showEditOption(BuildContext context, Account account) {
+    _accNameController.text = account.name;
+    _accTypeController.text = account.type;
+    _setupKeyController.text = account.key;
+    double screenWidth = MediaQuery.of(context).size.width;
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      barrierLabel: 'Dismiss',
+      transitionDuration: Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) {
+        return Center(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  left: 20,
+                  right: 20,
+                ),
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 255, 255, 255),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                width: screenWidth * 0.85,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 10,
+                    right: 10,
+                    top: 15,
+                    bottom: 15,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Account Type',
+                          style: TextStyle(
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        TextField(
+                          controller: _accTypeController,
+                          keyboardAppearance: Brightness.dark,
+                          textCapitalization: TextCapitalization.words,
+                          cursorColor: Color(0xFF000000),
+                          cursorWidth: 1,
+                          cursorHeight: 20,
+                          selectionControls: DesktopTextSelectionControls(),
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.only(
+                              top: 16,
+                              bottom: 16,
+                              left: 10,
+                              right: 10,
+                            ),
+                            fillColor: Color(0xFFEBEBEB),
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: (_setupKeyController.text.length > 0)
+                                    ? Colors.transparent
+                                    : Colors.black,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: (20 / 390) * screenWidth),
+                        Text(
+                          'Account Name',
+                          style: TextStyle(
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        TextField(
+                          controller: _accNameController,
+                          keyboardAppearance: Brightness.dark,
+                          cursorColor: Color(0xFF000000),
+                          cursorWidth: 1,
+                          cursorHeight: 20,
+                          selectionControls: DesktopTextSelectionControls(),
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.only(
+                              top: 16,
+                              bottom: 16,
+                              left: 10,
+                              right: 10,
+                            ),
+                            fillColor: Color(0xFFEBEBEB),
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: (_accNameController.text.length > 0)
+                                    ? Colors.transparent
+                                    : Colors.black,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: (20 / 390) * screenWidth),
+                        Text(
+                          'Setup Key',
+                          style: TextStyle(
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        TextField(
+                          controller: _setupKeyController,
+                          keyboardAppearance: Brightness.dark,
+                          cursorColor: Color(0xFF000000),
+                          cursorWidth: 1,
+                          cursorHeight: 20,
+                          selectionControls: DesktopTextSelectionControls(),
+                          style: TextStyle(
+                            color: Color(0xFF000000),
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.only(
+                              top: 16,
+                              bottom: 16,
+                              left: 10,
+                              right: 10,
+                            ),
+                            fillColor: Color(0xFFEBEBEB),
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: (_setupKeyController.text.length > 0)
+                                    ? Colors.transparent
+                                    : Colors.black,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 35),
+                        SizedBox(
+                          width: (300 / 390 * screenWidth),
+                          height: 60,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (_accTypeController.text.isNotEmpty &&
+                                  _accNameController.text.isNotEmpty &&
+                                  _setupKeyController.text.isNotEmpty) {
+                                if (_validateSecretKey(
+                                    _setupKeyController.text)) {
+                                  _deleteAccount(account);
+                                  _addAccount(
+                                    _accTypeController.text,
+                                    _accNameController.text,
+                                    _setupKeyController.text,
+                                  );
+                                  HapticFeedback.mediumImpact();
+                                  _loadAccounts();
+                                  setState(() {
+                                    for (var account in accounts) {
+                                      account.lastOtpGenerationTime =
+                                          DateTime.now().millisecondsSinceEpoch;
+                                    }
+                                  });
+                                  Navigator.of(context).pop();
+                                } else {
+                                  _setupKeyController.text = '';
+                                }
+                              }
+                            },
+                            child: Text(
+                              'Submit Changes',
+                              style: TextStyle(
+                                fontFamily: 'ClashDisplay',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, anim, secondaryAnim, child) {
+        return SlideTransition(
+          position: Tween<Offset>(begin: Offset(0, 1), end: Offset(0, 0))
+              .animate(anim),
+          child: child,
+        );
+      },
+    );
+  }
+
   void showCopiedAlert(BuildContext context) {
     showDialog(
       context: context,
@@ -858,6 +1133,117 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void showRemoveAlert(BuildContext context, Account account) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 0),
+          child: Dialog(
+            alignment: Alignment.center,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: IntrinsicHeight(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Stack(
+                  children: [
+                    BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: 5,
+                        sigmaY: 5,
+                      ),
+                      child: Container(
+                        color: Colors.transparent,
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: const Color.fromRGBO(255, 255, 255, 0.05),
+                        ),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color.fromRGBO(255, 255, 255, 0.15),
+                            Color.fromRGBO(255, 255, 255, 0.05),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: 30, bottom: 20, left: 10, right: 10),
+                      child: Column(
+                        children: [
+                          Center(
+                            child: Text(
+                              "Do you really want to remove ${account.type}?",
+                              style: TextStyle(
+                                fontFamily: 'ClashDisplay',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.start,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  _deleteAccount(account);
+                                },
+                                child: Text(
+                                  'Remove',
+                                  style: TextStyle(
+                                    fontFamily: 'ClashDisplay',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 5,
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    fontFamily: 'ClashDisplay',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _addAccount(String type, String name, String setupKey) {
     setState(() {
       accounts.add(Account(
@@ -866,6 +1252,13 @@ class _HomeScreenState extends State<HomeScreen> {
         key: setupKey,
         lastOtpGenerationTime: DateTime.now().millisecondsSinceEpoch,
       ));
+      _saveAccounts();
+    });
+  }
+
+  void _deleteAccount(Account account) {
+    setState(() {
+      accounts.remove(account);
       _saveAccounts();
     });
   }
