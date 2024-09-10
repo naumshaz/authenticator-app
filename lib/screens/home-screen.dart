@@ -91,7 +91,24 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           HelloDialog(),
           SearchBar(),
-          buildAccountsList(),
+          accounts.isEmpty
+              ? SizedBox(
+                  height: 0.55 * screenHeight,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20, right: 20),
+                      child: Text(
+                        "Tap '+' to get started!",
+                        style: TextStyle(
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: const Color.fromRGBO(255, 255, 255, 0.5)),
+                      ),
+                    ),
+                  ),
+                )
+              : buildAccountsList(),
         ],
       ),
       floatingActionButton: Align(
@@ -164,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: otpCode));
                     HapticFeedback.mediumImpact();
+                    showCopiedAlert(context);
 
                     // ScaffoldMessenger.of(context).showSnackBar(
                     //   SnackBar(
@@ -769,6 +787,75 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  void showCopiedAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Dialog(
+            alignment: Alignment.bottomCenter,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: IntrinsicHeight(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Stack(
+                  children: [
+                    BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: 5,
+                        sigmaY: 5,
+                      ),
+                      child: Container(
+                        color: Colors.transparent,
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: const Color.fromRGBO(255, 255, 255, 0.05),
+                        ),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color.fromRGBO(255, 255, 255, 0.15),
+                            Color.fromRGBO(255, 255, 255, 0.05),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 10),
+                        child: Text(
+                          'Copied',
+                          style: TextStyle(
+                            fontFamily: 'ClashDisplay',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    Future.delayed(Duration(milliseconds: 500), () {
+      Navigator.of(context, rootNavigator: true).pop();
+    });
   }
 
   void _addAccount(String type, String name, String setupKey) {
