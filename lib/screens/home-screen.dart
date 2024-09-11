@@ -183,10 +183,11 @@ class _HomeScreenState extends State<HomeScreen> {
               );
 
               return Slidable(
+                key: Key(account.key)
                 endActionPane: ActionPane(
                   motion: DrawerMotion(),
                   dismissible: DismissiblePane(
-                    onDismissed: () => showRemoveAlert(context, account),
+                    onDismissed: () {_deleteAccount(account);},
                   ),
                   children: [
                     SlidableAction(
@@ -198,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     SlidableAction(
                       onPressed: (context) => showRemoveAlert(context, account),
-                      backgroundColor: Color.fromRGBO(255, 82, 82, 0.75),
+                      backgroundColor: Color.fromRGBO(255, 82, 82, 1),
                       icon: Icons.delete_outlined,
                       foregroundColor: Colors.white,
                       autoClose: true,
@@ -214,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         HapticFeedback.mediumImpact();
                         showCopiedAlert(context);
                       },
-                      splashColor: Color(0xFF606060).withOpacity(0.4),
+                      splashColor: Color(0xFF606060).withOpacity(0.25),
                       highlightColor: Color(0xFF606060).withOpacity(0.1),
                       child: Container(
                         padding: EdgeInsets.only(top: 13, bottom: 8, right: 5),
@@ -1131,7 +1132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
 
-    Future.delayed(Duration(milliseconds: 500), () {
+    Future.delayed(Duration(milliseconds: 600), () {
       Navigator.of(context, rootNavigator: true).pop();
     });
   }
@@ -1180,7 +1181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(
-                          top: 30, bottom: 20, left: 10, right: 10),
+                          top: 25, bottom: 20, left: 25, right: 25),
                       child: Column(
                         children: [
                           Center(
@@ -1210,7 +1211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   style: TextStyle(
                                     fontFamily: 'ClashDisplay',
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w400,
+                                    fontWeight: FontWeight.w500,
                                     color: Colors.white,
                                   ),
                                 ),
@@ -1227,7 +1228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   style: TextStyle(
                                     fontFamily: 'ClashDisplay',
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w400,
+                                    fontWeight: FontWeight.w500,
                                     color: Colors.white,
                                   ),
                                 ),
