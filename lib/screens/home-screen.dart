@@ -183,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
 
               return Slidable(
-                key: Key(account.key)
+                key: Key(account.key),
                 endActionPane: ActionPane(
                   motion: DrawerMotion(),
                   dismissible: DismissiblePane(
